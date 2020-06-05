@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_rnd_bloc_rest_crud/ColorLibrary/HexColor.dart';
+import 'package:flutter_rnd_bloc_rest_crud/blocs/crud_blocs.dart';
 import 'package:flutter_rnd_bloc_rest_crud/models/Create_model.dart';
-import 'package:http/http.dart' as http;
 
 
 class CreateWidget extends StatefulWidget {
@@ -26,64 +24,66 @@ class _CreateWidgetState extends State<CreateWidget> {
     final TextEditingController posts = TextEditingController();
 
     return Scaffold(
-      body: Container(
-        padding: EdgeInsets.only(top: 0, left: 0, right: 0),
-        margin: EdgeInsets.only(top: 0, right: 0, left: 0),
-        color: Colors.white,
+      body: WillPopScope(
+        onWillPop: _backButtonPressd,
         child: Container(
-          width: double.infinity,
-          height: 340,
-          margin: EdgeInsets.only(left: 15, right: 15, top: 50, bottom: 0),
-          padding: EdgeInsets.all(13),
-          decoration: BoxDecoration(
-            color: _widgetbackgroundWhite,
-            borderRadius: BorderRadius.all(Radius.circular(15)),
-            boxShadow: [
-              BoxShadow(
-                  blurRadius: 15.0,
-                  //spreadRadius: 3.0,
-                  color: Colors.grey.shade400),
-            ],
-          ),
+          padding: EdgeInsets.only(top: 0, left: 0, right: 0),
+          margin: EdgeInsets.only(top: 0, right: 0, left: 0),
+          color: Colors.white,
           child: Container(
-            child: (create_model == null) ?
-            Column(
-              children: <Widget>[
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: <Widget>[
-                      TextFormField(
-                        validator: (value) {
-                          if (value.isEmpty) {
-                            return 'Please enter some text';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          hintText: 'Enter Name',
+            width: double.infinity,
+            height: 340,
+            margin: EdgeInsets.only(left: 15, right: 15, top: 50, bottom: 0),
+            padding: EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              color: _widgetbackgroundWhite,
+              borderRadius: BorderRadius.all(Radius.circular(15)),
+              boxShadow: [
+                BoxShadow(
+                    blurRadius: 15.0,
+                    //spreadRadius: 3.0,
+                    color: Colors.grey.shade400),
+              ],
+            ),
+            child: Container(
+              child: (create_model == null) ?
+              Column(
+                children: <Widget>[
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: <Widget>[
+                        TextFormField(
+                          validator: (value) {
+                            if (value.isEmpty) {
+                              return 'Please enter some text';
+                            }
+                            return null;
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Enter Name',
+                          ),
+
+                          controller: name,
+
                         ),
 
-                        controller: name,
+                        SizedBox(height: 23,),
 
-                      ),
+                        TextFormField(
+                          validator: (value) {
+                            if (value.isEmpty) {
+                              return 'Please enter some text';
+                            }
+                            return null;
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Enter Post',
+                          ),
 
-                      SizedBox(height: 23,),
+                          controller: posts,
 
-                      TextFormField(
-                        validator: (value) {
-                          if (value.isEmpty) {
-                            return 'Please enter some text';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          hintText: 'Enter Post',
                         ),
-
-                        controller: posts,
-
-                      ),
 
 //                      RaisedButton(
 //                        child: Text('Create Data'),
@@ -95,9 +95,9 @@ class _CreateWidgetState extends State<CreateWidget> {
 //                        },
 //                      ),
 
-                    ],
-                  ),
-                )
+                      ],
+                    ),
+                  )
 //                    : FutureBuilder<Create_model>(
 //                  future: create_model,
 //                  builder: (context, snapshot) {
@@ -114,25 +114,26 @@ class _CreateWidgetState extends State<CreateWidget> {
 //                    return CircularProgressIndicator();
 //                  },
 //                ),
-              ],
-            )
+                ],
+              )
 
-          : Container(
-              child: FutureBuilder<Create_model>(
-                future: create_model,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    print("Asche snap e");
-                    print(snapshot.data.posts.toString());
-                    return Text(snapshot.data.id.toString());
-                  } else if (snapshot.hasError) {
-                    return Text("${snapshot.error}");
-                  }
-                  return CircularProgressIndicator();
-                },
+            : Container(
+                child: StreamBuilder<Create_model>(
+                  stream: bloc.postsData,
+                  builder: (context, AsyncSnapshot<Create_model> snapshot) {
+                    if (snapshot.hasData) {
+                      print("Asche snap e");
+                      print(snapshot.data.posts.toString());
+                      return Text(snapshot.data.id.toString());
+                    } else if (snapshot.hasError) {
+                      return Text("${snapshot.error}");
+                    }
+                    return CircularProgressIndicator();
+                  },
+                ),
               ),
-            ),
 
+            ),
           ),
         ),
       ),
@@ -148,25 +149,29 @@ class _CreateWidgetState extends State<CreateWidget> {
             children: <Widget>[
               InkWell(
 
-                onTap: () {
+                onTap: () async {
                   debugPrint("ADD NEW POSTS");
                   if (_formKey.currentState.validate()) {
 
 //                    createPost(name.text, posts.text);
-                  setState(() {
-                    createPost(name.text, posts.text);
+//                  setState(() {
+//                    createPost(name.text, posts.text);
+//
+//                  });
 
-                  });
+                  bloc.getName(name.text);
+                  bloc.getPosts(posts.text);
+                  bloc.createPost();
+
 
                   Scaffold.of(context).showSnackBar(
                       SnackBar(content: Text('Processing Data'),
                         duration: Duration(seconds: 2),));
 
-                  new Timer(const Duration(seconds: 2), () {
-
-                  Navigator.of(context).pushNamed('/index');
-
-                 });
+                    await new Future.delayed(const Duration(milliseconds: 4000));
+                    bloc.dispose();
+                    bloc.fetchallPosts();
+                    Navigator.of(context).pop();
                }
 
 
@@ -189,9 +194,17 @@ class _CreateWidgetState extends State<CreateWidget> {
 
     );
   }
+
+  Future<bool> _backButtonPressd(){
+    bloc.dispose();
+    bloc.fetchallPosts();
+    Navigator.of(context).pop(true);
+
+  }
+
 }
 
-  Future<Create_model> createPost(String name, String posts) async {
+  /*Future<Create_model> createPost(String name, String posts) async {
     final http.Response response = await http.post(
       'https://test.bluesden.co/api/posts',
       headers: <String, String>{
@@ -212,4 +225,4 @@ class _CreateWidgetState extends State<CreateWidget> {
     } else {
       throw Exception('Failed to create album.');
     }
-  }
+  }*/

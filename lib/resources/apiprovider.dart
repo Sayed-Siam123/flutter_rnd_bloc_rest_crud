@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_rnd_bloc_rest_crud/models/Create_model.dart';
 import 'package:flutter_rnd_bloc_rest_crud/models/Posts_Model.dart';
 import 'package:flutter_rnd_bloc_rest_crud/models/single_post_model.dart';
 import 'package:http/http.dart' show Client;
@@ -9,7 +10,7 @@ import 'package:http/http.dart' show Client;
 
 class ApiProvider{
   Client client = Client();
-  final _url = "https://test.bluesden.co/api/posts";
+  final _url = "https://test.bluesden.co/api/posts/";
 
   Future<List<Posts>> fetchPosts() async{
     print("fetch from apiprovider");
@@ -33,7 +34,7 @@ class ApiProvider{
   Future<SinglePostModel> fetchsingledata(id) async{
 
     final response =
-    await client.get('https://test.bluesden.co/api/posts/$id');
+    await client.get(_url+id);
 
     if (response.statusCode == 200) {
       // If the server did return a 200 OK response,
@@ -49,4 +50,47 @@ class ApiProvider{
     }
   }
 
-}
+  Future<Create_model> createPost(name,posts) async {
+    //print("1");
+    final response = await client.post(
+      'https://test.bluesden.co/api/posts',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'name': name,
+        'posts': posts,
+      }),
+    );
+    //print("1");
+    if (response.statusCode == 201) {
+
+      print(json.decode(response.body));
+
+      //Navigator.of(context).pushNamed('/index');
+
+      //return Create_model.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to create album.');
+    }
+  }
+
+  Future deletePost(id) async {
+
+    final response = await client.delete(
+        '$_url'+'$id',
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print("data deleted");
+        //return Posts.fromJson(jsonDecode(response.body));
+      } else {
+
+        throw Exception('Failed to delete album.');
+      }
+    }
+
+  }

@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter_rnd_bloc_rest_crud/ColorLibrary/HexColor.dart';
 import 'package:flutter_rnd_bloc_rest_crud/blocs/crud_blocs.dart';
 import 'package:flutter_rnd_bloc_rest_crud/models/Posts_Model.dart';
 import 'package:flutter_rnd_bloc_rest_crud/widgets/Single_data_show_widget.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -33,7 +31,7 @@ class _ListView_getState extends State<ListView_get> {
 
   final Color _blackText = new HexColor("#212121");
 
-  final Color _green = new HexColor("#00B341");
+  //final Color _green = new HexColor("#00B341");
 
   final Color _grey = new HexColor("#9E9E9E");
 
@@ -172,7 +170,7 @@ class _ListView_getState extends State<ListView_get> {
 
   ListView _get_list_view(data) {
     final Color _widgetbackgroundWhite = new HexColor("#FFFFFF");
-    final Color _green = new HexColor("#00B341");
+    //final Color _green = new HexColor("#00B341");
 
     return ListView.builder(
         scrollDirection: Axis.vertical,
@@ -308,9 +306,12 @@ class _ListView_getState extends State<ListView_get> {
                       margin: EdgeInsets.only(right: 11),
                       child: RaisedButton(
                         color: _blackText,
-                        onPressed: () {
+                        onPressed: () async {
                           print("Paisi");
                           debugPrint(data[index].id.toString());
+
+                          bloc.getId(data[index].id.toString());
+                          bloc.deletePost();
 
                           //deleteData(data[index].id);
 
@@ -320,6 +321,8 @@ class _ListView_getState extends State<ListView_get> {
                           ));
 
                           new Timer(const Duration(seconds: 2), () {
+                            bloc.dispose();
+                            bloc.fetchallPosts();
                             Navigator.of(context).pushNamed('/index');
                           });
 
